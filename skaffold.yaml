@@ -1,0 +1,15 @@
+apiVersion: skaffold/v3
+kind: Config
+metadata:
+  name: conntrack-server
+
+deploy:
+  kubectl: {}
+
+manifests:
+  rawYaml:
+     - daemonset.yaml
+
+build:
+  artifacts:
+  - image: conntrack-server

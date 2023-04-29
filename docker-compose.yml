@@ -1,0 +1,8 @@
+version: '3.7'
+services:
+  app:
+    privileged: true
+    network_mode: host
+    build:
+      context: .
+

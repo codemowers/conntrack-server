@@ -1,0 +1,65 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: conntrack-server
+spec:
+  selector:
+    matchLabels:
+      app: conntrack-server
+  podMetricsEndpoints:
+    - port: http
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: conntrack-server
+spec:
+  selector:
+    matchLabels:
+      app: conntrack-server
+  template:
+    metadata:
+      labels:
+        app: conntrack-server
+    spec:
+      hostNetwork: true
+      enableServiceLinks: false
+      imagePullSecrets:
+        - name: regcred
+      containers:
+        - name: conntrack-server
+          image: conntrack-server
+          securityContext:
+            privileged: true
+          env:
+            - name: PATH_PROCFS
+              value: /host/proc
+          ports:
+            - containerPort: 5442
+              name: http
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc/
+      securityContext:
+        runAsUser: 0
+        # TODO: Use capabilities
+      volumes:
+      - name: proc
+        hostPath:
+          path: /proc/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conntrack-server
+  labels:
+    app: conntrack-server
+spec:
+  clusterIP: None
+  selector:
+    app: conntrack-server
+  ports:
+  - protocol: TCP
+    port: 5442
+    name: http
